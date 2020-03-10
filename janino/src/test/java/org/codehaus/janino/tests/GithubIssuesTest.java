@@ -263,4 +263,111 @@ class GithubIssuesTest {
             Assert.assertEquals(3, top.getLineNumber());
         }
     }
+
+    @Test public void
+    testIssue113() throws Exception {
+        CompilationUnit cu = (CompilationUnit) new Parser(new Scanner(
+            "issue113", // This will appear in stack traces as "file name".
+            new StringReader(
+                ""
+                    + "package demo.pkg3;\n"
+                    + "public class A$$1 {\n"
+                    + "    public static String main() {\n"
+                    + "        StringBuilder sb = new StringBuilder();\n"
+                    + "        short b = 1;\n"
+                    + "        for (int i = 0; i < 4; i++) {\n"
+                    + "            ;\n"
+                    + "            switch (i) {\n"
+                    + "                case 0:\n"
+                    + "                    sb.append(\"A\");\n"
+                    + "                    break;\n"
+                    + "                case 1:\n"
+                    + "                    sb.append(\"B\");\n"
+                    + "                    break;\n"
+                    + "                case 2:\n"
+                    + "                    sb.append(\"C\");\n"
+                    + "                    break;\n"
+                    + "                case 3:\n"
+                    + "                    sb.append(\"D\");\n"
+                    + "                    break;\n"
+                    + "            }\n"
+                    + GithubIssuesTest.injectDummyLargeCodeExceedingShort()
+                    + "        }\n"
+                    + "        return sb.toString();\n"
+                    + "    }\n"
+                    + "}\n"
+            )
+        )).parseAbstractCompilationUnit();
+
+        // Compile the code into a ClassLoader.
+        SimpleCompiler sc = new SimpleCompiler();
+        sc.setDebuggingInformation(true, true, true);
+        sc.cook(cu);
+        ClassLoader cl = sc.getClassLoader();
+
+        Assert.assertEquals("ABCD", cl.loadClass("demo.pkg3.A$$1").getMethod("main").invoke(null));
+    }
+//    org.codehaus.janino.InternalCompilerException: Compiling "A$$1" in "issue113": Compiling "main()"; main(): Operand stack inconsistent at offset 18: Previous size 1, now 0
+//
+//    at org.codehaus.janino.UnitCompiler.compile2(UnitCompiler.java:367)
+//    at org.codehaus.janino.UnitCompiler.access$000(UnitCompiler.java:226)
+//    at org.codehaus.janino.UnitCompiler$1.visitCompilationUnit(UnitCompiler.java:336)
+//    at org.codehaus.janino.UnitCompiler$1.visitCompilationUnit(UnitCompiler.java:333)
+//    at org.codehaus.janino.Java$CompilationUnit.accept(Java.java:363)
+//    at org.codehaus.janino.UnitCompiler.compileUnit(UnitCompiler.java:333)
+//    at org.codehaus.janino.SimpleCompiler.cook(SimpleCompiler.java:235)
+//    at org.codehaus.janino.tests.GithubIssuesTest.testIssue113(GithubIssuesTest.java:306)
+//    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+//    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+//    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+//    at java.lang.reflect.Method.invoke(Method.java:498)
+//    at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+//    at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+//    at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+//    at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+//    at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+//    at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+//    at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+//    at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+//    at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+//    at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+//    at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+//    at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+//    at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+//    at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
+//    at com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:68)
+//    at com.intellij.rt.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:33)
+//    at com.intellij.rt.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:230)
+//    at com.intellij.rt.junit.JUnitStarter.main(JUnitStarter.java:58)
+//    Caused by: org.codehaus.janino.InternalCompilerException: Compiling "main()"; main(): Operand stack inconsistent at offset 18: Previous size 1, now 0
+//    at org.codehaus.janino.UnitCompiler.compile(UnitCompiler.java:3448)
+//    at org.codehaus.janino.UnitCompiler.compileDeclaredMethods(UnitCompiler.java:1362)
+//    at org.codehaus.janino.UnitCompiler.compileDeclaredMethods(UnitCompiler.java:1335)
+//    at org.codehaus.janino.UnitCompiler.compile2(UnitCompiler.java:807)
+//    at org.codehaus.janino.UnitCompiler.compile2(UnitCompiler.java:410)
+//    at org.codehaus.janino.UnitCompiler.access$400(UnitCompiler.java:226)
+//    at org.codehaus.janino.UnitCompiler$2.visitPackageMemberClassDeclaration(UnitCompiler.java:389)
+//    at org.codehaus.janino.UnitCompiler$2.visitPackageMemberClassDeclaration(UnitCompiler.java:384)
+//    at org.codehaus.janino.Java$PackageMemberClassDeclaration.accept(Java.java:1594)
+//    at org.codehaus.janino.UnitCompiler.compile(UnitCompiler.java:384)
+//    at org.codehaus.janino.UnitCompiler.compile2(UnitCompiler.java:362)
+//        ... 29 more
+//    Caused by: org.codehaus.janino.InternalCompilerException: main(): Operand stack inconsistent at offset 18: Previous size 1, now 0
+//    at org.codehaus.janino.CodeContext.flowAnalysis(CodeContext.java:478)
+//    at org.codehaus.janino.CodeContext.flowAnalysis(CodeContext.java:669)
+//    at org.codehaus.janino.CodeContext.flowAnalysis(CodeContext.java:627)
+//    at org.codehaus.janino.CodeContext.flowAnalysis(CodeContext.java:627)
+//    at org.codehaus.janino.CodeContext.flowAnalysis(CodeContext.java:371)
+//    at org.codehaus.janino.UnitCompiler.compile(UnitCompiler.java:3439)
+//        ... 39 more
+
+    private static String
+    injectDummyLargeCodeExceedingShort() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("int a = -1;\n");
+        for (int i = 0 ; i < Short.MAX_VALUE / 3 ; i++) {
+            sb.append("a = " + i + ";\n");
+        }
+        return sb.toString();
+    }
 }
