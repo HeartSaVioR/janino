@@ -1,0 +1,2 @@
+install:
+  - cd janino-parent; mvn clean install -DskipTests
